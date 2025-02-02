@@ -1,0 +1,96 @@
+# version: '3.5'
+
+services:  
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - elastic
+    restart: always  
+
+  elasticsearch:
+    image: elasticsearch:7.14.0
+    container_name: elasticsearch
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g  # Limit heap to 1 GB
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+    restart: always   # Ensures automatic restart
+
+  postgres:
+    platform: 'linux/amd64'
+    image: postgres:latest
+    container_name: backend-postgres-production
+    environment:
+      - POSTGRES_USER=healthstealth
+      - POSTGRES_PASSWORD=asdfgh123
+      - POSTGRES_DB=health_stealth_database
+    ports:
+      - '5432:5432'
+    volumes:
+      - backend-postgres-production:/var/lib/postgresql/data
+    networks:
+      - elastic
+    restart: always    
+
+  backend:
+    platform: 'linux/amd64'
+    image: backend-django:production
+    container_name: backend-django-production
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_ENVIRONMENT: 'Production'
+    ports:
+      - '8080:8080'
+    env_file:
+      - ./.env
+    depends_on:
+      - postgres
+      - redis
+      - elasticsearch
+    networks:
+      - elastic
+    restart: always
+    # entrypoint: ["/app/entrypoint.sh"]
+
+  celery:
+    platform: 'linux/amd64'
+    image: healthstealtho:production
+    container_name: healthstealth-celery-production
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_ENVIRONMENT: 'Production'
+    volumes:
+      - ./:/app
+    ports:
+      - '5555:5555'
+    env_file:
+      - ./.env
+    depends_on:
+      - backend
+      - redis
+    environment:
+      - C_FORCE_ROOT="true"
+    networks:
+      - elastic
+    restart: always  
+    # entrypoint: ["/app/entrypoint.sh"]
+
+volumes:
+  backend-postgres-production:
+  esdata:
+
+networks:
+  elastic:
+    driver: bridge
