@@ -7,9 +7,9 @@ set -e
 echo "Collecting static files"
 python manage.py collectstatic --noinput
 
-# # Apply database migrations
-# echo "Applying database migrations"
-# python manage.py migrate
+# Apply database migrations
+echo "Applying database migrations"
+python manage.py migrate
 
 # Start the application
 echo "Starting the application"
