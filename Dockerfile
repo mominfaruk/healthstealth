@@ -29,7 +29,6 @@ RUN mkdir -p /var/logs/app
 COPY . /app
 
 COPY --chmod=+x entrypoint.sh /app/entrypoint.sh
-COPY entrypoint.sh /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 CMD ["gunicorn", "--workers", "4", "--timeout", "120", "--bind", "0.0.0.0:8080", "healthstealth.wsgi:application"]
