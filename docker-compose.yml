@@ -10,19 +10,19 @@ services:
       - elastic
     restart: always  
 
-  elasticsearch:
-    image: elasticsearch:7.14.0
-    container_name: elasticsearch
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    environment:
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms128m -Xmx128m  # Limit heap to 1 GB
-    ports:
-      - 9200:9200
-    networks:
-      - elastic
-    restart: always   # Ensures automatic restart
+  # elasticsearch:
+  #   image: elasticsearch:7.14.0
+  #   container_name: elasticsearch
+  #   volumes:
+  #     - esdata:/usr/share/elasticsearch/data
+  #   environment:
+  #     - discovery.type=single-node
+  #     - ES_JAVA_OPTS=-Xms128m -Xmx128m  # Limit heap to 1 GB
+  #   ports:
+  #     - 9200:9200
+  #   networks:
+  #     - elastic
+  #   restart: always   # Ensures automatic restart
 
   postgres:
     platform: 'linux/amd64'
