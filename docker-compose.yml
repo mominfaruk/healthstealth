@@ -56,7 +56,7 @@ services:
     depends_on:
       - postgres
       - redis
-      - elasticsearch
+     # - elasticsearch
     networks:
       - elastic
     restart: always
