@@ -17,7 +17,7 @@ services:
       - esdata:/usr/share/elasticsearch/data
     environment:
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m  # Limit heap to 1 GB
+      - ES_JAVA_OPTS=-Xms128m -Xmx128m  # Limit heap to 1 GB
     ports:
       - 9200:9200
     networks:
