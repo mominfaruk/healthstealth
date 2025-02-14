@@ -1,0 +1,26 @@
+name: Deployment to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [closed]
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Build and Deploy
+        run: |
+          cd /home/ubuntu/healthstealth
+          git checkout main
+          git pull origin main
+          sudo docker-compose up -d --build
+          sudo docker exec backend-django-production python manage.py migrate
+          sudo service nginx restart 
