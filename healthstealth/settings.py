@@ -32,6 +32,15 @@ ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
+PROJECT_APPS = [
+    
+]
+
+THIRD_PARTY_APPS = [
+    "rest_framework",
+    'rest_framework_simplejwt',
+    'drf_spectacular',
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -40,7 +49,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-]
+]+PROJECT_APPS+THIRD_PARTY_APPS
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -98,23 +108,7 @@ else:
     }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
 
 
 # Internationalization

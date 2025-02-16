@@ -28,6 +28,7 @@ RUN mkdir -p /var/logs/app
 
 COPY . /app
 
+RUN chmod +x /app/entrypoint.sh
 COPY --chmod=+x entrypoint.sh /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
 
