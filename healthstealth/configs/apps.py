@@ -12,7 +12,7 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 PROJECT_APPS = [
-    "apps.authentication",
+    'apps.authentication',
 ]
 
 THIRD_PARTY_APPS = [
