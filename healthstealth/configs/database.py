@@ -1,10 +1,12 @@
 from decouple import config
 from datetime import timedelta
+from pathlib import Path
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 is_production = config("ISPRODUCTION", default=False, cast=bool)
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 if not is_production:
     DATABASES = {

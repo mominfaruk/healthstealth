@@ -10,3 +10,4 @@ venv/
 env/
 C
 *.env
+app-content
