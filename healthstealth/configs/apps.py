@@ -14,6 +14,7 @@ DJANGO_APPS = [
 PROJECT_APPS = [
     'apps.authentication',
     'apps.accounts',
+    'apps.gist'
 ]
 
 THIRD_PARTY_APPS = [
