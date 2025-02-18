@@ -11,7 +11,7 @@ BASE_DIR="apps"
 TARGET_DIR="${BASE_DIR}/${APP}"
 
 # Create the directory structure (including the new tests folder)
-mkdir -p "${TARGET_DIR}"/{enums,migrations,models,serializers,versioned_api/v1/views,tests}
+mkdir -p "${TARGET_DIR}"/{enums,migrations,models,serializers,versioned_api/v1/routes,views,tests}
 
 # Create __init__.py in each directory
 for dir in $(find "${TARGET_DIR}" -type d); do
