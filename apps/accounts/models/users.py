@@ -1,6 +1,11 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from apps.accounts.enums.user_role import UserRole
+from apps.gist.models.activity import Activity
+from apps.gist.models.key import Key
+from apps.gist.models.activity import Activity
+from apps.gist.models.timelog import TimeLog
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -24,7 +29,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin, Key, Activity, TimeLog):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=255, unique=True)
     firstName = models.CharField(max_length=255, blank=True, null=True)
@@ -32,15 +37,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     phoneNumber = models.CharField(max_length=20, blank=True, null=True)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     gender = models.CharField(max_length=255, blank=True, null=True)
-    userRole = models.CharField(max_length=255, blank=True, null=True)
+    userRole = models.CharField(max_length=255, choices=[(tag.value, tag.value) for tag in UserRole], default="patient")
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     isBanned = models.BooleanField(default=False)
     banReason = models.TextField(blank=True, null=True)
     limitedBan = models.BooleanField(default=False)
     limitedBanTime = models.DateTimeField(blank=True, null=True)
-    createdAt = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    updatedAt = models.DateTimeField(auto_now=True, blank=True, null=True)
     lastLoginTime = models.DateTimeField(blank=True, null=True)
     isOnline = models.BooleanField(default=False)
     groups = models.ManyToManyField(
