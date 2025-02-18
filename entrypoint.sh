@@ -7,9 +7,21 @@ python manage.py spectacular --file schema.yml
 echo "Collecting static files"
 python manage.py collectstatic --noinput
 
-# Apply database migrations
-echo "Applying database migrations"
-python manage.py migrate
+
+# Create superuser if not exists (using values from environment variables)
+echo "Creating superuser—if it does not already exist"
+python manage.py shell <<EOF
+from django.contrib.auth import get_user_model
+User = get_user_model()
+email = "$SUPERUSER_EMAIL"
+username = "$SUPERUSER_USERNAME"
+password = "$SUPERUSER_PASSWORD"
+if not User.objects.filter(email=email).exists():
+    User.objects.create_superuser(email=email, username=username, password=password)
+    print("Superuser created")
+else:
+    print("Superuser already exists")
+EOF
 
 # Start the application
 echo "Starting the application"

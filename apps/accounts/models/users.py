@@ -24,7 +24,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-class CustomUser(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=255, unique=True)
     firstName = models.CharField(max_length=255, blank=True, null=True)
@@ -43,6 +43,20 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     updatedAt = models.DateTimeField(auto_now=True, blank=True, null=True)
     lastLoginTime = models.DateTimeField(blank=True, null=True)
     isOnline = models.BooleanField(default=False)
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='customuser_set',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups',
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='customuser_set',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
 
     objects = CustomUserManager()
 

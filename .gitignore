@@ -11,3 +11,4 @@ env/
 C
 *.env
 app-content
+migrations/
