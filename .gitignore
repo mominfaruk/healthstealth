@@ -12,3 +12,4 @@ C
 *.env
 app-content
 migrations/
+schema.yml

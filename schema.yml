@@ -3,9 +3,38 @@ info:
   title: ''
   version: 0.0.0
 paths:
+  /api/v1/accounts/register/:
+    post:
+      operationId: api_v1_accounts_register_create
+      description: This endpoint allows you to register a new user.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegister'
+          description: ''
+        '400':
+          description: Bad request
   /api/v1/schema/:
     get:
-      operationId: schema_retrieve
+      operationId: api_v1_schema_retrieve
       description: |-
         OpenApi3 schema for this API. Format can be selected via content negotiation.
 
@@ -123,7 +152,7 @@ paths:
           - zh-hans
           - zh-hant
       tags:
-      - schema
+      - api
       security:
       - jwtAuth: []
       - {}
@@ -149,12 +178,12 @@ paths:
           description: ''
   /api/v1/token:
     post:
-      operationId: token_create
+      operationId: api_v1_token_create
       description: |-
         Takes a set of user credentials and returns an access and refresh JSON web
         token pair to prove the authentication of those credentials.
       tags:
-      - token
+      - api
       requestBody:
         content:
           application/json:
@@ -176,12 +205,12 @@ paths:
           description: ''
   /api/v1/token/refresh:
     post:
-      operationId: token_refresh_create
+      operationId: api_v1_token_refresh_create
       description: |-
         Takes a refresh type JSON web token and returns an access type JSON web
         token if the refresh token is valid.
       tags:
-      - token
+      - api
       requestBody:
         content:
           application/json:
@@ -234,6 +263,31 @@ components:
       required:
       - access
       - refresh
+    UserRegister:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        username:
+          type: string
+          maxLength: 255
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+          minLength: 8
+        password2:
+          type: string
+          writeOnly: true
+          maxLength: 128
+          minLength: 8
+      required:
+      - email
+      - password
+      - password2
+      - username
   securitySchemes:
     jwtAuth:
       type: http
