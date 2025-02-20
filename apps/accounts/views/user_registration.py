@@ -3,6 +3,7 @@ from apps.accounts.serializers.users_serializer import UserRegisterSerializer
 from apps.accounts.models.users import User
 from rest_framework import generics
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.response import Response
 
 
 
@@ -19,10 +20,12 @@ class UserRegistration(generics.CreateAPIView):
     permission_classes = []
 
     def perform_create(self, serializer):
-        instance = serializer.save()
-        LogHelper.fail_log("User created: " + str(instance))
+        try:
+            instance = serializer.save()
+        except Exception as e:
+            LogHelper.fail_log(e)
 
-    def create(self, request, _args, _kwargs):
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
