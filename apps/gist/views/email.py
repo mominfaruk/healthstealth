@@ -81,6 +81,33 @@ class EmailService:
             self.logger.exception(f"Error sending templated email: {e}")
             return False
 
+    def send_email(self, email_type, recipients, context, subject=None, template_name=None, from_email=None):
+        """
+        Sends an email using the appropriate method based on provided parameters.
+        - If a template name is provided, a templated email is sent.
+        - Otherwise, if recipients is a list and contains more than one address, a bulk email is sent.
+        - If a single email is provided, a single email is sent.
+        """
+        try:
+            if template_name:
+                return self.send_template_email(
+                    template_name,
+                    recipients,
+                    context,
+                    subject or f"{email_type.capitalize()} Email",
+                    from_email
+                )
+            if isinstance(recipients, list):
+                if len(recipients) == 1:
+                    return self.send_single_email(email_type, recipients[0], context, subject)
+                else:
+                    return self.send_bulk_email(email_type, recipients, context, subject)
+            else:
+                return self.send_single_email(email_type, recipients, context, subject)
+        except Exception as e:
+            self.logger.exception(f"Error sending email using send_email: {e}")
+            return False
+
     def send_password_reset_email(self, to_email, reset_link):
         context = {'reset_link': reset_link}
         return self.send_single_email('password_reset', to_email, context)

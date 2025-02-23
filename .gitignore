@@ -14,3 +14,4 @@ app-content
 migrations/
 schema.yml
 zsh.exe.stackdump
+.DS_Store
