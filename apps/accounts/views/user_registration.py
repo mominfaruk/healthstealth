@@ -1,6 +1,7 @@
 from apps.gist.views.logger import LogHelper
 from apps.accounts.serializers.users_serializer import UserRegisterSerializer
 from apps.accounts.models.users import User
+from apps.accounts.models.verification_code import VerificationCode
 from rest_framework import generics
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework.response import Response
