@@ -3,7 +3,7 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
 
-class EmailService:
+class  EmailService:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         
@@ -81,7 +81,7 @@ class EmailService:
             self.logger.exception(f"Error sending templated email: {e}")
             return False
 
-    def send_email(self, email_type, recipients, context, subject=None, template_name=None, from_email=None):
+    def send_email(self, recipients, context, subject=None, template_name=None, from_email=None, email_type=None):
         """
         Sends an email using the appropriate method based on provided parameters.
         - If a template name is provided, a templated email is sent.

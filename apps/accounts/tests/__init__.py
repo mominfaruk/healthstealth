@@ -1,1 +1,1 @@
-from .user_register import *
+from .test_user_register import *

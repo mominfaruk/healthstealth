@@ -2,7 +2,8 @@ from apps.gist.models.key import Key
 from apps.gist.models.activity import Activity
 from apps.gist.models.timelog import TimeLog
 from apps.accounts.models.users import User
-from datetime import timedelta, timezone
+from datetime import timedelta
+from django.utils import timezone
 from django.db import models
 
 class VerificationCode(Key, Activity, TimeLog):
@@ -56,7 +57,6 @@ class VerificationCode(Key, Activity, TimeLog):
         help_text="Date and time the last phone verification code was sent."
     )
 
-
     class Meta:
         verbose_name = "Verification Code"
         verbose_name_plural = "Verification Codes"
@@ -66,10 +66,14 @@ class VerificationCode(Key, Activity, TimeLog):
         return f"{self.user.email} - {self.email_verification_code}"
     
     def is_email_verification_code_expired(self):
-        return self.email_verification_code_expiry < timezone.now()
+        if not self.email_verification_code_expiry:
+            return True
+        return timezone.now() > self.email_verification_code_expiry
     
     def is_phone_verification_code_expired(self):
-        return self.phone_verification_code_expiry < timezone.now()
+        if not self.phone_verification_code_expiry:
+            return True
+        return timezone.now() > self.phone_verification_code_expiry
     
     def increment_email_verification_code_attempts(self):
         self.email_verification_code_attempts += 1

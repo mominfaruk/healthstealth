@@ -4,4 +4,6 @@ from .jwt import *
 from .swagger import *
 from .rest_settings import *
 from .database import *
-from .email import *
+from .email_settings import *
+from .templates_settings import *
+from .email_template_settings import *

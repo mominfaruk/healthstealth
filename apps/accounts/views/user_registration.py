@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import random
 import string
 import jwt
 
+from django.utils import timezone
 from django.conf import settings
 from rest_framework import generics
 from rest_framework.response import Response
@@ -13,6 +14,7 @@ from apps.gist.views.email import EmailService
 from apps.accounts.serializers.users_serializer import UserRegisterSerializer
 from apps.accounts.models.users import User
 from apps.accounts.models.verification_code import VerificationCode
+from healthstealth.configs.email_template_settings import EMAIL_TEMPLATES
 
 
 @extend_schema(
@@ -31,32 +33,60 @@ class UserRegistration(generics.CreateAPIView):
         try:
             instance = serializer.save()
             verification_code = self.generate_verification_code()
-            verification_code_obj, created = VerificationCode.objects.update_or_create(
-                user=instance, 
-                email_verification_code=verification_code,
-                email_verification_code_last_sent=datetime.now()
-            )   
-            verification_code_obj.save()
-            print(verification_code)
+            current_time = timezone.now()
+            expiry_time = current_time + timedelta(minutes=15)
             
-            '''verification token is generated using the user's ID, the verification code, and an expiry time of 15 minutes.'''
+            verification_code_obj, created = VerificationCode.objects.update_or_create(
+                user=instance,
+                defaults={
+                    'email_verification_code': verification_code,
+                    'email_verification_code_last_sent': current_time,
+                    'email_verification_code_expiry': expiry_time
+                }
+            )
+            
             verification_token = jwt.encode({
                 'user_id': instance.id,
                 'verification_code': verification_code,
-                'exp': datetime.now() + timedelta(minutes=15)
+                'exp': expiry_time
             }, settings.SECRET_KEY, algorithm='HS256')
-            print(verification_token)
-            # Optionally, send the token via email using your EmailService
-            EmailService.send_verification_email(instance.email, verification_token)
-
+            
+            context = {
+                'verification_token': verification_token,
+                'verification_code': verification_code,
+            }
+            EmailService().send_email(
+                recipients=[instance.email],
+                context=context,
+                subject="Please Verify Your Email Address",
+                template_name=EMAIL_TEMPLATES.get('user_registration_verification'),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                email_type="verification"
+            )
+            
         except Exception as e:
             LogHelper.fail_log(e)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response({"success": True, "message": "User created successfully"}, status=201)
+            raise e
+        
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(
+                    {"success": False, "error": serializer.errors},
+                    status=400
+                )
+            self.perform_create(serializer)
+            return Response(
+                {"success": True, "message": "User created successfully"},
+                status=201
+            )
+        except Exception as e:
+            LogHelper.fail_log(e)
+            return Response(
+                {"success": False, "message": "An error occurred during registration"},
+                status=500
+            )
     
     def generate_verification_code(self):
         return ''.join(random.choices(string.digits, k=6))

@@ -6,12 +6,28 @@ from django.utils.translation import gettext_lazy as _
 from apps.accounts.enums.user_role import UserRole
 
 
+# def get_sentinel_user():
+#     return get_user_model().objects.get_or_create(
+#         email='deleted@mail.com',
+#         username='deleted@mail.com',
+#         user_mode='ADMIN', 
+#         is_deleted=True
+#     )[0]
 def get_sentinel_user():
-    return get_user_model().objects.get_or_create(
-        email='deleted@mail.com',
-        username='deleted@mail.com',
-        user_mode=UserRole.TechAdmin.value,
-        is_deleted=True
+    """
+    Returns a sentinel user to maintain referential integrity when deleting users
+    """
+    User = get_user_model()
+    return User.objects.get_or_create(
+        username='deleted@example.com',
+        defaults={
+            'email': 'deleted@example.com',
+            'userRole': UserRole.ADMIN.value,
+            'is_deleted': True,
+            'is_active': False,
+            'firstName': 'Deleted',
+            'lastName': 'User'
+        }
     )[0]
 
 
