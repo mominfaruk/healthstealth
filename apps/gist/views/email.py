@@ -25,7 +25,7 @@ class  EmailService:
             send_mail(
                 subject,
                 message,
-                settings.EMAIL_HOST_USER,
+                settings.DEFAULT_FROM_EMAIL,
                 [to_email],
                 fail_silently=False,
             )
@@ -53,7 +53,7 @@ class  EmailService:
             send_mail(
                 subject,
                 message,
-                settings.EMAIL_HOST_USER,
+                settings.DEFAULT_FROM_EMAIL,
                 recipients,
                 fail_silently=False,
             )
@@ -65,16 +65,35 @@ class  EmailService:
 
     def send_template_email(self, template_name, to_email, context, subject, from_email=None):
         try:
+            if isinstance(to_email, list) and len(to_email) > 1:
+                for email in to_email:
+                    context['email'] = email
+                    html_content = render_to_string(template_name, context)
+                    text_content = "This email requires an HTML-capable email client."
+                    msg = EmailMultiAlternatives(
+                        subject=subject,
+                        body=text_content,
+                        from_email=from_email or settings.DEFAULT_FROM_EMAIL,
+                        to=[email]
+                    )
+                    msg.attach_alternative(html_content, "text/html")
+                    msg.send(fail_silently=True)
+                    print(f"Templated email sent to: {email}")
+                    self.logger.info(f"Templated email sent to: {email}")
+                return True
+            to_email = to_email[0] if isinstance(to_email, list) else to_email
             html_content = render_to_string(template_name, context)
             text_content = "This email requires an HTML-capable email client."
             msg = EmailMultiAlternatives(
                 subject=subject,
                 body=text_content,
-                from_email=from_email or settings.EMAIL_HOST_USER,
-                to=[to_email] if isinstance(to_email, str) else to_email
+                from_email=from_email or settings.DEFAULT_FROM_EMAIL,
+                to=[to_email]
             )
+            print(msg.from_email,msg.to)
             msg.attach_alternative(html_content, "text/html")
-            msg.send(fail_silently=False)
+            msg.send(fail_silently=True)
+            print(f"Templated email sent to: {to_email}")
             self.logger.info(f"Templated email sent to: {to_email}")
             return True
         except Exception as e:
