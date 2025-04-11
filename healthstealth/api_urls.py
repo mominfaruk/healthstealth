@@ -10,7 +10,7 @@ api_urlpatterns = [
     path(f'api/{version}/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path(f'api/{version}/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path(f'api/{version}/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path(f'api/{version}/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path(f'', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path(f'api/{version}/auth/', include(authentication_urlpatterns)),
     path(f'api/{version}/accounts/', include(accounts_urlpatterns)),
 ]

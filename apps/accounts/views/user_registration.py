@@ -70,6 +70,23 @@ class UserRegistration(generics.CreateAPIView):
         
     def post(self, request, *args, **kwargs):
         try:
+            email=request.data.get('email')
+            exiting_user=User.objects.filter(email=email).exists()
+            if exiting_user:
+                verification_status=exiting_user.verificationcode_set.filter(email_verified=False).first()
+                if verification_status:
+
+                    current_time = timezone.now()
+                    if verification_status.email_verification_code_expiry > current_time:
+                        return Response(
+                            {"success": False, "message": "Email already registered and verification code sent"},
+                            status=400
+                        )
+                else:
+                    return Response(
+                        {"success": False, "message": "Email already registered"},
+                        status=400
+                    )                                                                         
             serializer = self.get_serializer(data=request.data)
             if not serializer.is_valid():
                 return Response(
@@ -90,3 +107,98 @@ class UserRegistration(generics.CreateAPIView):
     
     def generate_verification_code(self):
         return ''.join(random.choices(string.digits, k=6))
+
+
+@extend_schema(
+    description="This api is for verifying the code for user registration",
+    request={
+        'application/json':{
+            'type':'object',
+            'properties':{
+                'email':{'type':'string','format':'email'},
+                'verification_code':{'type':'string', 'example':'10234'}
+            },
+            'required':['email','verification_code']
+        }
+    },
+    responses={
+        200:OpenApiResponse(description="code verified successfully"),
+        400:OpenApiResponse(description="Bad request")
+    }
+)
+class EmailCodeVerification(generics.GenericAPIView):
+    permission_classes=[]
+
+
+    def post(self,request, *args, **kwargs):
+        email=request.data.get('email')
+        verification_code=request.data.get('verification_code')
+        print(email,verification_code)
+        user=User.objects.filter(email=email).first()
+        if not user:
+            return Response({"success":False, "message":"User not found"},status=400)
+        print(user.verificationcode_set.first().email_verification_code_expiry, timezone.now(), user.verificationcode_set.first().email_verified)
+        user_verification_code=user.verificationcode_set.filter(email_verification_code_expiry__gt=timezone.now(),email_verified=False).first()
+        if verification_code==user_verification_code.email_verification_code:
+            if user_verification_code.email_verified:
+                return Response({"success": False, "message":"Email already verified"},status=400)
+            user_verification_code.email_verified=True
+            user_verification_code.save()
+            return Response({"success": True, "message": "Code verification successful"},status=200)
+        return Response({"success": False, "message":"Code verification failed"},status=400)
+
+
+@extend_schema(
+    description="This api is for resending the verification code for user registration",
+    request={
+        'application/json':{
+            'type':'object',
+            'properties':{
+                'email' : {'type': 'string', 'format': 'email'}
+            }
+        }
+    }
+)                                                 
+class ResendVerificationCode(generics.GenericAPIView):
+    permission_classes = []
+    
+
+    def post(self,request, *args, **kwargs):
+        email = request.data.get('email')
+        user=User.objects.filter(email=email).first()
+
+        if user.verificationcode_set.filter(email_verified=True).exists():
+            return Response({"success": False, "message": "Email does not exist or already verified"}, status=400)
+
+        if not user:
+            return Response({"success": False, "message": "User not found"}, status=400)
+        current_time = timezone.now()
+        verification_code = UserRegistration().generate_verification_code()
+        expiry_time = current_time + timedelta(minutes=15)
+        verification_code_obj, created = VerificationCode.objects.update_or_create(
+            user=user,
+            defaults={
+                'email_verification_code': verification_code,
+                'email_verification_code_last_sent': current_time,
+                'email_verification_code_expiry': expiry_time
+            }
+        )
+        verification_code=jwt.encode({
+            'user_id': user.id,
+            'verification_code': verification_code,
+            'exp': expiry_time
+        }, settings.SECRET_KEY, algorithm='HS256')
+        
+        context = {
+            'verification_token': verification_code,
+            'verification_code': verification_code,
+        }
+        EmailService().send_email(
+            recipients=[user.email],
+            context=context,
+            subject="Your Verification Code",
+            template_name=EMAIL_TEMPLATES.get('resend_verification_code'),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            email_type="verification"
+        )
+        return Response({"success": True, "message": "Verification code resent successfully"}, status=200)
