@@ -137,14 +137,13 @@ class EmailCodeVerification(generics.GenericAPIView):
         user=User.objects.filter(email=email).first()
         if not user:
             return Response({"success":False, "message":"User not found"},status=400)
-        print(user.verificationcode_set.first().email_verification_code_expiry, timezone.now(), user.verificationcode_set.first().email_verified)
         user_verification_code=user.verificationcode_set.filter(email_verification_code_expiry__gt=timezone.now(),email_verified=False).first()
+        if not user_verification_code:
+            return Response({"success": False, "message": "Expired verification code  or email is already verified"}, status=400)
         if verification_code==user_verification_code.email_verification_code:
-            if user_verification_code.email_verified:
-                return Response({"success": False, "message":"Email already verified"},status=400)
             user_verification_code.email_verified=True
             user_verification_code.save()
-            return Response({"success": True, "message": "Code verification successful"},status=200)
+            return Response({'success': True, 'message': 'Email verified successfully'},status=200)
         return Response({"success": False, "message":"Code verification failed"},status=400)
 
 
