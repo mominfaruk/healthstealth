@@ -7,3 +7,4 @@ from .database import *
 from .email_settings import *
 from .templates_settings import *
 from .email_template_settings import *
+from .celery_settings import *
