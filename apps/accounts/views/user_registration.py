@@ -7,7 +7,9 @@ from django.utils import timezone
 from django.conf import settings
 from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+
 
 from apps.gist.views.logger import LogHelper
 from apps.gist.views.email import EmailService
@@ -109,6 +111,9 @@ class UserRegistration(generics.CreateAPIView):
         return ''.join(random.choices(string.digits, k=6))
 
 
+class EmailVerificationThrottle(AnonRateThrottle):
+    rate='3/minute'
+    scope='email_code_verification'
 @extend_schema(
     description="This api is for verifying the code for user registration",
     request={
@@ -128,7 +133,7 @@ class UserRegistration(generics.CreateAPIView):
 )
 class EmailCodeVerification(generics.GenericAPIView):
     permission_classes=[]
-
+    throttle_classes=[EmailVerificationThrottle]
 
     def post(self,request, *args, **kwargs):
         email=request.data.get('email')
