@@ -112,7 +112,7 @@ class UserRegistration(generics.CreateAPIView):
 
 
 class EmailVerificationThrottle(AnonRateThrottle):
-    rate='3/minute'
+    rate='10/minute'
     scope='email_code_verification'
 @extend_schema(
     description="This api is for verifying the code for user registration",

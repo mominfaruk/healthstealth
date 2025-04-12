@@ -61,23 +61,24 @@ class EmailCodeVerificationTests(TestCase):
         response=self.view(request)
 
         self.assertEqual(response.status_code,400)
-        print(response.data,"response")
         self.assertEqual(response.data, {"success": False, "message": "Expired verification code  or email is already verified"})
 
 
     def test_code_verification_throttling(self):
-        for index in range(5):
+        for index in range(12):
             request_data={
-                'verification_code':self.verification_code,
+                'verification_code': f'{index}',
                 'email':self.user.email
             }
-            request=self.factory.post('/api/v1/verify-email', request_data, format='json')
-            response=self.view(request)
-            if index < 4:
-                self.assertEqual(response.status_code,200)
+            request = self.factory.post('/api/v1/verify-email', request_data, format='json')
+            request.META['REMOTE_ADDR'] = '192.168.1.1' #this is to simulate the ip address of the user
+            response = self.view(request)
+            if index < 10:
+                self.assertEqual(response.status_code,400)
             else:
                 self.assertEqual(response.status_code,429)
-                self.assertEqual(response.data,{'success':False,'message':'Too many requests. Try again later.'})
+                self.assertTrue('detail' in response.data)
+                self.assertTrue('throttled' in response.data['detail'].code)
 
 
     
